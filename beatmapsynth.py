@@ -121,13 +121,13 @@ def music_file_converter(song_path):
     """This function makes sure the file type of the provided song will be converted to the music file type that 
     Beat Saber accepts"""
     if song_path.endswith('.mp3'):
-        AudioSegment.from_mp3(song_path).export('song.egg', format='ogg')
+        AudioSegment.from_mp3(song_path).export('song.egg', format='ogg', codec='vorbis', parameters=['-strict', '-2'])
     elif song_path.endswith('.wav'):
-        AudioSegment.from_wav(song_path).export('song.egg', format='ogg')
+        AudioSegment.from_wav(song_path).export('song.egg', format='ogg', codec='vorbis', parameters=['-strict', '-2'])
     elif song_path.endswith('.flv'):
-        AudioSegment.from_flv(song_path).export('song.egg', format='ogg')
+        AudioSegment.from_flv(song_path).export('song.egg', format='ogg', codec='vorbis', parameters=['-strict', '-2'])
     elif song_path.endswith('.raw'):
-        AudioSegment.from_raw(song_path).export('song.egg', format='ogg')
+        AudioSegment.from_raw(song_path).export('song.egg', format='ogg', codec='vorbis', parameters=['-strict', '-2'])
     elif song_path.endswith('.ogg') or song_path.endswith('.egg'):
         shutil.copy2(song_path, 'song.egg')
     else:
@@ -602,7 +602,7 @@ def amplitude_rate_modulation(y, sr, difficulty):
     D = np.abs(librosa.stft(y))
     db = librosa.amplitude_to_db(D, ref=np.max)
     #Get beat frames and sync with amplitudes
-    tempo, beat_frames = librosa.beat.beat_track(y, sr, trim = False)
+    tempo, beat_frames = librosa.beat.beat_track(y = y, sr = sr, trim = False)
     beat_db = pd.DataFrame(librosa.util.sync(db, beat_frames, aggregate = np.mean))
     #Mean amplitude per beat
     avg_beat_db = beat_db.mean()
@@ -663,14 +663,14 @@ def segments_to_df_rate_modulated(segments, modulated_beat_list):
             counter += 1
         elif expanded_beat_list[counter] == expanded_beat_list[-1]:
             length = len(expanded_beat_list[first: -1])
-            df = df.append(pd.DataFrame({'length': length, 'seg_no': expanded_beat_list[-1]['segment']}, index = [0]))
+            df = pd.concat([df, pd.DataFrame({'length': length, 'seg_no': expanded_beat_list[-1]['segment']}, index = [0])])
             break
         elif expanded_beat_list[counter]['segment'] == expanded_beat_list[counter+1]['segment']:
             counter += 1  
         elif expanded_beat_list[counter]['segment'] != expanded_beat_list[counter+1]['segment']:
             last = counter
             length = len(expanded_beat_list[first: last+1])
-            df = df.append(pd.DataFrame({'length': length, 'seg_no': expanded_beat_list[counter]['segment']}, index = [0]))
+            df = pd.concat([df, pd.DataFrame({'length': length, 'seg_no': expanded_beat_list[counter]['segment']}, index = [0])])
             counter += 1
     
     return df
